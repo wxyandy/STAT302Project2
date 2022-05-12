@@ -95,6 +95,7 @@ replication_expon<- matrix(NA,nrow = num_replication,ncol = length(n))
 test_error <- function(n) {
   data_normal <- rnorm(n, mean = 1)
   data_expon <- rexp(n, rate = 1)
+  result <- matrix(NA,1,2)
   result[1] <- t.test(data_normal, alternative = "two.sided", mu = 1)$p.value < 0.05
   result[2] <- t.test(data_expon, alternative = "two.sided", mu = 1)$p.value < 0.05
   return(result)
