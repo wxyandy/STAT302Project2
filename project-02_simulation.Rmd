@@ -5,7 +5,7 @@ date: ""
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(BSDA)
@@ -14,7 +14,7 @@ library(BSDA)
 ## Part 1: Simulate to answer statistical questions
 ### Simulation 1
 This first simulation is about finding the probability that at least one pair of two people share the same birthday. To do this we can simulate rooms of different amounts of people, assign them a random birthday, and check if anyone has the same birthday. For this simulation we will create rooms of 5,10,15,20,25,30,35,40,45,50 many people 1000 times each.
-```{r Birthdays, eval = FALSE}
+```{r Birthdays}
 # creating a variable for the number of replications we are testing for each room size
 num_replications <- 1000
 # creating a vector for the different room sizes 
@@ -122,34 +122,28 @@ ggplot(dataFrameResult, aes(sample_size, probability, group = distribution_type,
 Type I error when hypothesis testing is when you get a false positive. Or in other words, it is when the null hypothesis is true, but you chose to reject it. In our case the null hypothesis is that the population mean is equal to 1. Type I error occurs when we reject the null hypothesis, given that the null hypothesis is true, meaning that the true population mean is equal to 1. When we look at our simulation results, we can see the probability for this error for a normal distribution and exponential distribution with different sample sizes. We can see that for normal distributions, the probability of having this error is low, regardless of the sample size. For exponential distributions, the larger the sample size, the less likely you are to get type I error. 
 
 ### Simulation 3
-
-Look at the relationship between the effect size (the magnitude of $\beta$) and the power of a t-test for a coefficient in a linear model. 
-
-Recall that power is the probability of rejecting the null hypothesis given that it is false, so $\text{Power} = P(\text{reject }H_0|H_0\text{ false})$. Consider effect sizes for $\beta$ in the set $\{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0\}$. Generate each response $Y_i$ from the following linear model:
-
-$$Y_i = 5 + X_i\beta + \epsilon_i$$
-$$\epsilon_i\sim N(0,1)$$
-Use a sample size of $n = 100$. Use the $X$ vector below. 
-
-```{r}
+For this simulation we are looking at the relationship between the effect size (the magnitude of β) and the power of a t-test for a coefficient in a linear model. We want to consider different effect sizes for β, and how that will effect each response Y from a linear model. We will simulate each size of beta 1000 times.
+```{r beta values}
+# creating the X vector to use later on to generate each response Y
 set.seed(302)
 X <- rbinom(100, size = 1, prob = 0.5)
+# creating the effect sizes for β in a vector
 beta <- c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1)
+
+# creating a function called test_power that will take any given beta value and the X vector and calculate each response Y.
+# inputs: beta value and the X vector
+# outputs: a Boolean value related to if you reject the null hypothesis
 test_power <- function(beta, X) {
-  errors <- rnorm(100, mean = 0, sd = 1)
-Y <- 5 + X*beta + errors 
-df <- data.frame(X = X, 
-                 Y = Y)
-  
-  epsilon <- rnorm(100,0,1)
-  Y <- 5 + X*beta + epsilon
+  epsilon <- rnorm(100,0,1) # generating 100 values from a normal distribution
+  Y <- 5 + X*beta + epsilon # calculating the Y value
   df <- data.frame(X,Y)
-  result <- my_lm(X~Y,df)
+  result <- my_lm(X~Y,df) # testing to see if we reject the null hypothesis 
   return(result)
 }
 
-# takes in a formula, and data frame
-# returns a table of the coefficient, standard error, t-value and p-value
+# creating a function called my_lm (same as in lab 3) that will take a formula and data to test if we reject the null hypothesis
+# inputs: a formula of the linear model, and the data frame
+# outputs: a Boolean value related to if you reject the null hypothesis
 my_lm <- function(formula, data) {
   X <- model.matrix(formula, data)
   Y <- model.response(model.frame(formula, data))
@@ -162,34 +156,36 @@ my_lm <- function(formula, data) {
   return(p_value[2] < 0.05)
 }
 
+# creating a variable for the number of replications we are testing for each beta
 num_replication <- 1000
+# creating a matrix to hold the results
 replication <- matrix(nrow = num_replication, ncol = length(beta))
 
-# run simulation
+# Using a for loop that will run the simulation for each beta value and number of replications and saves it to a matrix replication
 for (sizeIndex in 1:length(beta)) {
   for (testNum in 1:num_replication) {
     replication[testNum, sizeIndex] <- test_power(beta[sizeIndex], X)
   }
 }
 
-# make result vector that gives the proportion of shared birthdays for each value of n
+# creating a matrix to hold the final results
 result <- vector(length = length(beta))
+# for loop to run through each beta value
 for (i in 1:length(beta)) {
+  # calculating the probability of rejecting the null hypothesis
   result[i] <- mean(replication[,i])
 }
 
+# creating a graph of our results
 dataFrameResult <- data.frame(beta,result)
-
 ggplot(dataFrameResult, aes(beta, result)) +
   geom_point() +
   geom_line() +
-  labs(title = "relationship between the effect size (the magnitude of beta) and the power of a t-test",
-       x = "beta", y = "the probability of rejecting the null hypothesis given that it is false")
+  labs(title = "Effect Size (the magnitude of beta) and the Power of a t-test",
+       x = "Magnitude of Beta", y = "Probability of Rejecting the Null Hypothesis Given that it is False")
 ```
 
-
-
-For each effect size (value of $\beta$), simulate data $1000$ times. In your description of your results, be sure to define power. 
+Power is the probability of rejecting the null hypothesis given that it is false. In our linear model, the null hypothesis is that beta is equal to zero. However, we are generating data where the beta value will never be zero. This means that the null hypothesis will always be false, meaning that all we need to find is the probability of rejecting the null hypothesis. From our results, we can see that when the magnitude of beta increases, than the probability of rejecting the null also increases. We can see that when the magnitude of beta reaches 1, then the probability of rejecting the null hypothesis approaches 100%. This also shows us that when the magnitude of beta increases then the power also increases.
 
 ## Part 2: Simulate to Teach 
 
