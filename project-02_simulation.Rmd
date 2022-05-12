@@ -12,118 +12,114 @@ library(BSDA)
 ```
 
 ## Part 1: Simulate to answer statistical questions
-
-Part 1 includes three different simulations. For each simulation, include the code to run your simulation, a plot of your results, and an explanation of your results and what this simulation taught you about this statistical problem or topic. Each simulation will be worth (7) points. They will be graded based on the following: 
-
-* Writing a function to generate data once (1 point) 
-* Commenting your code and following the style guidelines (1.5 points) 
-* Plotting your results, with a well-labeled plot that follows our visualization style guidelines (1 point) 
-* Generating correct results (1.5 points)
-* Describing the results (1.5 points)
-* Explaining what this simulation taught you (1 point)
-
 ### Simulation 1
+This first simulation is about finding the probability that at least one pair of two people share the same birthday. To do this we can simulate rooms of different amounts of people, assign them a random birthday, and check if anyone has the same birthday. For this simulation we will create rooms of 5,10,15,20,25,30,35,40,45,50 many people 1000 times each.
+```{r Birthdays, eval = FALSE}
+# creating a variable for the number of replications we are testing for each room size
+num_replications <- 1000
+# creating a vector for the different room sizes 
+room_size <- c(5,10,15,20,25,30,35,40,45,50)
 
-The birthday problem is a probability brain teaser. 
-
-It asks, in a room of $n$ people, what is the probability that at least one pair of $2$ people share the same birthday. 
-
-Let's simulate to find out! Assume birthdays are randomly drawn from the $365$ days of a non-leap year and each day is equally probable to be someone's birthday. Assume that the birthdays of everyone in the room are independent of each other. Simulate to estimate the probability of two people sharing a birthday in a set of $n$ people for values of $n$ in $\{5, 10, 15, 20, 25, 30, 35, 40, 45, 50\}$. 
-
-For each size of room $n$ generate data $1000$ times. *Hint: use the function sample, and pay attention to the `replace` parameter.*
-
-For this first problem I've written out psuedocode to answer this question through comments. For the next problems I suggest that you write out your own psuedocode as comments! 
-
-```{r, eval = FALSE}
-# set a variable for the number of replications
-num_replication <- 1000
-# create a vector for room sizes n 
-n <- c(5,10,15,20,25,30,35,40,45,50)
-# write a function to generate birthday data and check whether there is a shared birthday in the group. This function should take as input the value of n and return TRUE if two people share a birthday and FALSE otherwise (hint: the function sample will be helpful here!)
-test_birthday <- function(n) {
-  test <- vector(length = n)
-  for (i in 1:n) {
-    test[i] <- sample.int(365, 1)
+# creating a function that takes an input of the room size, and outputting a Boolean telling us if two people share a  birthday
+test_birthday <- function(room_size) {
+  test <- vector(length = room_size) # creating a vector of everyone in the room
+  for (i in 1:room_size) {
+    test[i] <- sample.int(365, 1) # Creating a random birthday for everyone in the room
   }
-  return(!length(test) == length(unique(test)))
-  #return(any(duplicated(test)))
+  return(!length(test) == length(unique(test))) # Testing if anyone has the same birthday as anyone else in the room
 }
+
 # make a matrix to hold data from your replications 
-replication <- matrix(nrow = num_replication, ncol = 10)
+replication <- matrix(nrow = num_replications, ncol = 10)
 # run simulation 
-for (sizeIndex in 1:length(n)) {
-  for (testNum in 1:num_replication) {
-    replication[testNum, sizeIndex] <- test_birthday(n[sizeIndex])
+for (sizeIndex in 1:length(room_size)) {
+  for (testNum in 1:num_replications) {
+    replication[testNum, sizeIndex] <- test_birthday(room_size[sizeIndex])
   }
 }
-# make result vector that gives the proportion of shared birthdays for each value of n 
-result <- vector(length = length(n))
-for (i in 1:length(n)) {
+
+# make result vector that gives the proportion of shared birthdays for each value of the room size 
+result <- vector(length = length(room_size))
+for (i in 1:length(room_size)) {
   result[i] <- mean(replication[,i])
 }
 
 # make dataframe for plotting that has a variable for sample size n and a variable for 
 # proportion of shared birthdays for that value of n 
-dataFrameResult <- data.frame(n,result)
+dataFrameResult <- data.frame(room_size,result)
 
-# plot your results (as a well-labeled ggplot) to look at the relationship between n and 
-# the probability of having a shared birthday 
-ggplot(dataFrameResult, aes(n, result)) +
+
+# plot your results (as a well-labeled ggplot) to look at the relationship between room size and the probability of having a shared birthday 
+ggplot(dataFrameResult, aes(room_size, result)) +
   geom_point() +
-  geom_line() +
-  labs(title = "Relationship between room size and the probability of having a shared birthday",
-       x = "room size", y = "probability of having a shared birthday")
+  labs(title = "Relationship Between Room Size and probability of Having a Shared   Birthday",
+       x = "Room Size", y = "Probability of Having a Shared Birthday")
 ```
 
+From this simulation and graph, we learn that the room size does affect the probability of having a shared birthday. We can see that when the number of people in a room increases, then the probability of two people sharing a birthday also increases. This relationship appears to be mostly linear, with a slight curve at the end. This curve at the end shows that when the room is increasing from around 40 to 50 people, the increase in probability of having a shared birthday is smaller.
+
 ### Simulation 2
-
-What is the relationship between sample size and the probability of a type I error? Recall that type I error is the probability of rejecting the null hypothesis given that it is true, so $\text{Probability of type I error} = P(\text{reject }H_0|H_0\text{ true})$
-
-Look at the relationship between sample size and type I error for a two-sided t-test with null hypothesis that the population mean is equal to $1$, with an alpha level of $0.05$. This will look like `t.test(data, alternative = "two.sided", mu = 1)`. 
-
-Do this in two cases, once when data comes from a normal distribution and once when data comes from an exponential distribution. Test sample sizes in the set $\{10, 20, 30, 40, 50, 60, 70, 80, 90, 100\}$. Generate data under the null hypothesis, where the normal data come from a normal distribution with mean $1$ and variance $1$ and the exponential data come from an exponential distribution with mean $1$ and variance $1$ (this corresponds with the argument `rate = 1` in the function `rexp`). 
-
-For each sample size, simulate data $5000$ times. 
-
-In your description of your results, be sure to define type I error. 
-
-```{r}
-n <- c(10,20,30,40,50,60,70,80,90,100)
+The second simulation is exploring the relationship between sample size and the probability of a type I error when testing hypothesis'. More specifically, when doing a two-sided t-test with null hypothesis that the population mean is equal to 1, and an alpha level of 0.05. We want to see what the probability is of type I error when doing this t-test with different sample sizes. To do this we will create a simulation with sample sizes of 10,20,30,40,50,60,70,80,90,100 under a normal and exponential distribution of mean 1 and variance 1. We will simulate each sample size 5000 times.
+```{r t-tests and type I error}
+# creating a vector for the different sample sizes
+sample_size <- c(10,20,30,40,50,60,70,80,90,100)
+# creating a variable for the number of replications we are testing for each sample size
 num_replication <- 5000
-replication_normal<- matrix(NA,nrow = num_replication,ncol = length(n))
-replication_expon<- matrix(NA,nrow = num_replication,ncol = length(n))
-test_error <- function(n) {
-  data_normal <- rnorm(n, mean = 1)
-  data_expon <- rexp(n, rate = 1)
+
+# crating matrices to hold the data from the replications 
+# matrix for the normal distribution
+replication_normal<- matrix(NA,nrow = num_replication,ncol = length(sample_size))
+# Matrix for the exponential distribution
+replication_expon<- matrix(NA,nrow = num_replication,ncol = length(sample_size))
+
+# creating a function called test_error that will run the simulation for any sample size, it will creates a normal and exponential distribution for that sample size, creates a temporary matrix called result to hold the results, runs a t-test with the distributions and saves the p-value to the result matrix
+# inputs: any sample size, creates a normal and exponential distribution for that 
+# outputs: returns the result matrix
+test_error <- function(sample_size) {
+  # creating normal and exponential distributions
+  data_normal <- rnorm(sample_size, mean = 1)
+  data_expon <- rexp(sample_size, rate = 1)
+  # creating matrix called result for the p-values
   result <- matrix(NA,1,2)
+  # calculating p-values and testing if they are less than the alpha level, which will return a Boolean true of false. (meaning that there is type I error if the Boolean is   true) then saving it to the result matrix for each distribution
   result[1] <- t.test(data_normal, alternative = "two.sided", mu = 1)$p.value < 0.05
   result[2] <- t.test(data_expon, alternative = "two.sided", mu = 1)$p.value < 0.05
+  # returns the result matrix
   return(result)
 }
 
-for (sizeIndex in 1:length(n)) {
-  for (testNum in 1:num_replication) {
-    value <- test_error(n[sizeIndex])
+# using a for loop to run the simulation 5000 times and save the results into two larger matrices, one for each type of distribution
+for (sizeIndex in 1:length(sample_size)) { # will run for each sample size
+  for (testNum in 1:num_replication) { # will run 5000 times
+    # uses the test_error function to get the p-values for normal and exponential distributions
+    value <- test_error(sample_size[sizeIndex])
+    # saves the p-value for the normal distribution to the matrix replication_normal
     replication_normal[testNum, sizeIndex] <- value[1]
+    # saves the p-value for the exponential distribution to the matrix replication_expon
     replication_expon[testNum, sizeIndex] <- value[2]
   }
 }
 
-result <- matrix(NA, nrow = 2, ncol = length(n))
-for (i in 1:length(n)) {
+# creating a matrix to hold the final results 
+result <- matrix(NA, nrow = 2, ncol = length(sample_size))
+# for loop to run through each sample size
+for (i in 1:length(sample_size)) {
+  # calculating the probability of having a type I error for each distribution
   result[1,i] <- mean(replication_normal[,i])
   result[2,i] <- mean(replication_expon[,i])
 }
 
-dataFrameResult <- data.frame(rep(n, 2), c(result[1,], result[2,]), c(rep("normal_distribution", 10), rep("exponential_distribution", 10)))
+# creating a graph of our results
+dataFrameResult <- data.frame(rep(sample_size, 2), c(result[1,], result[2,]), c(rep("normal_distribution", 10), rep("exponential_distribution", 10)))
 colnames(dataFrameResult) <- c("sample_size", "probability","distribution_type")
-
 ggplot(dataFrameResult, aes(sample_size, probability, group = distribution_type, color = distribution_type)) +
   geom_point() +
   geom_line() +
-  labs(title = "relationship between sample size and the probability of a type I error",
-       x = "sample size", y = "probability of having a type I error")
+  labs(title = "Sample Size and Probability of Type I Error",
+       x = "Sample Size", y = "Probability of Having Type I Error")
 ```
+
+Type I error when hypothesis testing is when you get a false positive. Or in other words, it is when the null hypothesis is true, but you chose to reject it. In our case the null hypothesis is that the population mean is equal to 1. Type I error occurs when we reject the null hypothesis, given that the null hypothesis is true, meaning that the true population mean is equal to 1. When we look at our simulation results, we can see the probability for this error for a normal distribution and exponential distribution with different sample sizes. We can see that for normal distributions, the probability of having this error is low, regardless of the sample size. For exponential distributions, the larger the sample size, the less likely you are to get type I error. 
 
 ### Simulation 3
 
@@ -138,7 +134,41 @@ Use a sample size of $n = 100$. Use the $X$ vector below.
 ```{r}
 set.seed(302)
 X <- rbinom(100, size = 1, prob = 0.5)
+beta <- c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1)
+test_power <- function(beta, X) {
+  epsilon <- rnorm(1,0,1)
+  Y <- 5 + X*beta + epsilon
+  mean_Y <- mean(Y)
+  p_rejNull <- power.t.test(100, mean_Y-(5 + 0.5*beta), sd = 1)$power
+  return(p_rejNull)
+}
+
+num_replication <- 1000
+replication <- matrix(nrow = num_replication, ncol = length(beta))
+
+# run simulation 
+for (sizeIndex in 1:length(beta)) {
+  for (testNum in 1:num_replication) {
+    replication[testNum, sizeIndex] <- test_power(beta[sizeIndex], X)
+  }
+}
+
+# make result vector that gives the proportion of shared birthdays for each value of n 
+result <- vector(length = length(beta))
+for (i in 1:length(beta)) {
+  result[i] <- mean(replication[,i])
+}
+
+dataFrameResult <- data.frame(beta,result)
+
+ggplot(dataFrameResult, aes(beta, result)) +
+  geom_point() +
+  geom_line() +
+  labs(title = "relationship between the effect size (the magnitude of beta) and the power of a t-test",
+       x = "beta", y = "the probability of rejecting the null hypothesis given that it is false")
 ```
+
+
 
 For each effect size (value of $\beta$), simulate data $1000$ times. In your description of your results, be sure to define power. 
 
