@@ -136,24 +136,43 @@ set.seed(302)
 X <- rbinom(100, size = 1, prob = 0.5)
 beta <- c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1)
 test_power <- function(beta, X) {
-  epsilon <- rnorm(1,0,1)
+  errors <- rnorm(100, mean = 0, sd = 1)
+Y <- 5 + X*beta + errors 
+df <- data.frame(X = X, 
+                 Y = Y)
+  
+  epsilon <- rnorm(100,0,1)
   Y <- 5 + X*beta + epsilon
-  mean_Y <- mean(Y)
-  p_rejNull <- power.t.test(100, mean_Y-(5 + 0.5*beta), sd = 1)$power
-  return(p_rejNull)
+  df <- data.frame(X,Y)
+  result <- my_lm(X~Y,df)
+  return(result)
+}
+
+# takes in a formula, and data frame
+# returns a table of the coefficient, standard error, t-value and p-value
+my_lm <- function(formula, data) {
+  X <- model.matrix(formula, data)
+  Y <- model.response(model.frame(formula, data))
+  lrCoe <- solve( t(X) %*% X ) %*% t(X) %*% Y
+  df <- nrow(data) - 2
+  sigma_sq <- sum(((Y - X %*% lrCoe) ^2) / df)
+  error_lrCoe <- sqrt(diag(sigma_sq * (solve(t(X) %*% X))))
+  t_value <- lrCoe / error_lrCoe
+  p_value <- 2 * pt(abs(t_value), df, lower.tail = FALSE)
+  return(p_value[2] < 0.05)
 }
 
 num_replication <- 1000
 replication <- matrix(nrow = num_replication, ncol = length(beta))
 
-# run simulation 
+# run simulation
 for (sizeIndex in 1:length(beta)) {
   for (testNum in 1:num_replication) {
     replication[testNum, sizeIndex] <- test_power(beta[sizeIndex], X)
   }
 }
 
-# make result vector that gives the proportion of shared birthdays for each value of n 
+# make result vector that gives the proportion of shared birthdays for each value of n
 result <- vector(length = length(beta))
 for (i in 1:length(beta)) {
   result[i] <- mean(replication[,i])
