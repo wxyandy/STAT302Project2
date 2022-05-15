@@ -196,45 +196,76 @@ Jackpot_white <- sample.int(59,5)
 Jackpot_red <- sample.int(42,1)
 
 buyOne <- function(Jackpot_white, Jackpot_red, powerplay) {
-  prize <- 0
+  if (powerplay){
+    prize <- -2
+  } else {
+    prize <- -1
+  }
   white_ball <- sample.int(59,5)
   power_ball <- sample.int(42,1)
   whiteMatch <- length(unique(c(white_ball, Jackpot_white[1:5])))
   redMatch <- power_ball == Jackpot_red
   if (redMatch) {
     if (whiteMatch == 10) {
-      prize <- 3
+      prize <- prize + 3
     } else if (whiteMatch == 9) {
-      prize <- 4
+      prize <- prize + 4
     } else if (whiteMatch == 8) {
-      prize <- 7
+      prize <- prize + 7
     } else if (whiteMatch == 7) {
-      prize <- 100
+      prize <- prize + 100
     } else if (whiteMatch == 6) {
-      prize <- 10000
+      prize <- prize + 10000
     } else {
-      return(10000000)
+      return(prize + 10000000)
     }
   } else {
     if (whiteMatch == 7) {
-      prize <- 7
+      prize <- prize + 7
     } else if (whiteMatch == 6) {
-      prize <- 100
+      prize <- prize + 100
     } else if (whiteMatch == 5) {
-      prize <- 200000
+      prize <- prize + 200000
     }
   }
-  if (powerplay){
+  if (powerplay && prize != -2){
     return(prize*(sample.int(4,1)+1))
   }
   return(prize)
 }
-money <- 0
-for (n in 1:1000) {
-  money <- money + buyOne(Jackpot_white,Jackpot_red,TRUE)
-}
 
+populationNum <- 100
+totalTicket <- 1000
+
+money_lost <- matrix(NA,2*populationNum,2)
+
+replication <- matrix(nrow = num_replication, ncol = length(beta))
+
+# Using a for loop that will run the simulation for each beta value and number of replications and saves it to a matrix replication
+for (i in 1:populationNum) {
+  money_normal <- 0
+  money_power <- 0
+  for (ticketNum in 1:totalTicket) {
+    money_normal <- money_normal + buyOne(Jackpot_white, Jackpot_red, FALSE)
+    money_power <- money_power + buyOne(Jackpot_white, Jackpot_red, TRUE)
+  }
+  index <- i*2-1
+  money_lost[index, 1] <- -money_normal
+  money_lost[index, 2] <- "normal_play"
+  money_lost[index+1, 1] <- -money_power
+  money_lost[index+1, 2] <- "power_play"
+}
 ```
+
+```{r}
+dataFrameResult <- data.frame(money_lost)
+colnames(dataFrameResult) <- c("money_lost", "play_type")
+dataFrameResult$play_type <- as.factor(dataFrameResult$play_type)
+dataFrameResult$money_lost <- as.numeric(dataFrameResult$money_lost)
+ggplot(dataFrameResult, aes(x = play_type, y = money_lost)) +
+  geom_boxplot()
+```
+
 
 Simulation is often used as a tool to teach statistics. There are many theoretical results that are easier to explain to students through a simulation. Choose a statistical concept, theoretical result, or problem from a homework or exam from a previous statistics class. Design a simulation that would teach this topic or answer this question.
 
