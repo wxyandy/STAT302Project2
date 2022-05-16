@@ -1,7 +1,7 @@
 ---
 title: "Project 2: Simulation"
 author: "Xiangyi Wen; Tanner Huck"
-date: ""
+date: "May 16th"
 output: html_document
 ---
 
@@ -187,24 +187,31 @@ ggplot(dataFrameResult, aes(beta, result)) +
 
 Power is the probability of rejecting the null hypothesis given that it is false. In our linear model, the null hypothesis is that beta is equal to zero. However, we are generating data where the beta value will never be zero. This means that the null hypothesis will always be false, meaning that all we need to find is the probability of rejecting the null hypothesis. From our results, we can see that when the magnitude of beta increases, than the probability of rejecting the null also increases. We can see that when the magnitude of beta reaches 1, then the probability of rejecting the null hypothesis approaches 100%. This also shows us that when the magnitude of beta increases then the power also increases.
 
-## Part 2: Simulate to Teach 
-
+## Part 2: Simulate to Teach
 ### Simulation 4 
-
-```{r}
+One statistical topic that Andy and Tanner found interesting was the probability of a certain event. One specific event we were curious about was the probability of winning the lottery. It seems like everyone always tells you not to play the lottery and that you never win any money, but we wanted to see what the probability of winning actually is. To find this probability, we ran a simulation of 1000 people playing the power ball lottery 1000 times each. In this lottery game, the goal is to guess as many balls correctly as you can. If you can guess all 5 white balls and the power ball correctly, you can win up to 40 million dollars. It costs 1 dollar to play the power ball lottery and 2 dollars for the power play power ball lottery, which has a higher jackpot prize. Meaning that if you play the normal power ball lottery 1000 times, it will cost you 1000 dollars and 2000 dollars to play power play 1000 times.
+```{r lottery, warning=FALSE}
+# creating the winning numbers for the white and red loto
 Jackpot_white <- sample.int(59,5)
 Jackpot_red <- sample.int(42,1)
 
+# creating a function called buyOne that will play the loto one time
+# inputs: the winning numbers for each loto and if they are doing power play
+# outputs: the total amount gained or lost from a single play
 buyOne <- function(Jackpot_white, Jackpot_red, powerplay) {
+  # an if to see if this is a power play
   if (powerplay){
-    prize <- -2
+    prize <- -2 # will cost 2 dollars if a power play
   } else {
-    prize <- -1
+    prize <- -1 # will cost 1 dollar if a regular play
   }
+  # creating the numbers that the person chooses
   white_ball <- sample.int(59,5)
   power_ball <- sample.int(42,1)
+  # Checking to see if the person chose the winning numbers
   whiteMatch <- length(unique(c(white_ball, Jackpot_white[1:5])))
   redMatch <- power_ball == Jackpot_red
+  # if they chose the red ball and any white balls correctly, diciding how much they will win 
   if (redMatch) {
     if (whiteMatch == 10) {
       prize <- prize + 3
@@ -219,7 +226,7 @@ buyOne <- function(Jackpot_white, Jackpot_red, powerplay) {
     } else {
       return(prize + 10000000)
     }
-  } else {
+  } else { # if they did not get the red ball correctly
     if (whiteMatch == 7) {
       prize <- prize + 7
     } else if (whiteMatch == 6) {
@@ -228,43 +235,58 @@ buyOne <- function(Jackpot_white, Jackpot_red, powerplay) {
       prize <- prize + 200000
     }
   }
+  # if it was a power play, they get a bonus
   if (powerplay && prize != -2){
     return(prize*(sample.int(4,1)+1))
   }
+  # return how much money they made or lost in a single play
   return(prize)
 }
 
-populationNum <- 100
+# creating variables for the total number of people and how many times they will play the loto for the simulation
+populationNum <- 1000
 totalTicket <- 1000
 
+# creating a matrix to hold the results from the simulation
 money_lost <- matrix(NA,2*populationNum,2)
 
-replication <- matrix(nrow = num_replication, ncol = length(beta))
 
-# Using a for loop that will run the simulation for each beta value and number of replications and saves it to a matrix replication
+# Using a for loop that will run the simulation for all the people and all the plays, then saving the results to the money_lost matrix
 for (i in 1:populationNum) {
   money_normal <- 0
   money_power <- 0
-  for (ticketNum in 1:totalTicket) {
+  for (ticketNum in 1:totalTicket) { # usuing the buyOne function to run the simulation
     money_normal <- money_normal + buyOne(Jackpot_white, Jackpot_red, FALSE)
     money_power <- money_power + buyOne(Jackpot_white, Jackpot_red, TRUE)
   }
   index <- i*2-1
-  money_lost[index, 1] <- -money_normal
+  money_lost[index, 1] <- money_normal
   money_lost[index, 2] <- "normal_play"
-  money_lost[index+1, 1] <- -money_power
+  money_lost[index+1, 1] <- money_power
   money_lost[index+1, 2] <- "power_play"
 }
-```
 
-```{r}
+# putting the results into a box plot
 dataFrameResult <- data.frame(money_lost)
 colnames(dataFrameResult) <- c("money_lost", "play_type")
 dataFrameResult$play_type <- as.factor(dataFrameResult$play_type)
 dataFrameResult$money_lost <- as.numeric(dataFrameResult$money_lost)
 ggplot(dataFrameResult, aes(x = play_type, y = money_lost)) +
-  geom_boxplot()
+  geom_boxplot() + 
+  labs(title = "Result of Playing the Lottery 1000 Times",
+   x = "Type of Lottery", y = "Money Lost or Gained ($)") +
+  theme(plot.title = element_text(hjust = 0.5))
+# creating another box plot that is zoomed in more
+ggplot(dataFrameResult, aes(x = play_type, y = money_lost)) +
+  geom_boxplot() + 
+  labs(title = "Result of Playing the Lottery 1000 Times",
+   x = "Type of Lottery", y = "Money Lost or Gained ($)") +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  ylim(-2000,0)
+
 ```
+
+After running our simulation and graphing our results, you can see that majority of people that played the lottery lost money. After spending the 1000 or 2000 dollars to play 1000 times, all but a few people did not break even. In playing the normal power ball lottery 1000 times, most people lost more than 750 dollars and in playing the power play lottery, most people lost more that 1500 dollars. If you run the simulation over and over again, you might see someone win thousands of dollars, but it is very rare. We conclude that the probability of winning the lottery is very small, you are much more likely to lose money than make money when playing power ball. Our recommendation is that you do not play the lottery, maybe invest the money instead.
 
 
 Simulation is often used as a tool to teach statistics. There are many theoretical results that are easier to explain to students through a simulation. Choose a statistical concept, theoretical result, or problem from a homework or exam from a previous statistics class. Design a simulation that would teach this topic or answer this question.
