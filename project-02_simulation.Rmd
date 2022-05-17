@@ -148,11 +148,11 @@ my_lm <- function(formula, data) {
   X <- model.matrix(formula, data)
   Y <- model.response(model.frame(formula, data))
   lrCoe <- solve( t(X) %*% X ) %*% t(X) %*% Y
-  df <- nrow(data) - 2
+  df <- nrow(data) - 2 # calculates degrees of freedom
   sigma_sq <- sum(((Y - X %*% lrCoe) ^2) / df)
-  error_lrCoe <- sqrt(diag(sigma_sq * (solve(t(X) %*% X))))
-  t_value <- lrCoe / error_lrCoe
-  p_value <- 2 * pt(abs(t_value), df, lower.tail = FALSE)
+  error_lrCoe <- sqrt(diag(sigma_sq * (solve(t(X) %*% X)))) # calculates standard error
+  t_value <- lrCoe / error_lrCoe # calculates the t-statistic
+  p_value <- 2 * pt(abs(t_value), df, lower.tail = FALSE) # calculates the p-value
   return(p_value[2] < 0.05)
 }
 
