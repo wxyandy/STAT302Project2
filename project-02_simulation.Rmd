@@ -189,7 +189,14 @@ Power is the probability of rejecting the null hypothesis given that it is false
 
 ## Part 2: Simulate to Teach
 ### Simulation 4 
-One statistical topic that we found interesting was the probability of a certain event. One specific event we were curious about was the probability of winning the lottery. It seems like everyone always tells you not to play the lottery and that you never win any money, but we wanted to see what the probability of winning actually is. To find this probability, we ran a simulation of 1000 people playing the power ball lottery 2000 times with 1000 times of normal play and 1000 times of power play. In this lottery game, the goal is to guess as many balls correctly as you can. If you can guess all 5 white balls and the power ball correctly, you can win up to 20 million dollars. It costs 1 dollar to play the normal ball lottery and 2 dollars for the power ball lottery, which will give you higher prize. Meaning that if you play the normal power ball lottery 1000 times, it will cost you 1000 dollars and 2000 dollars to play power play 1000 times.
+One statistical topic that we found interesting was the probability of a certain event. One specific event we were curious about was the probability of winning the lottery. It seems like everyone always tells you not to play the lottery and that you never win any money, but we wanted to see what the probability of winning actually is. 
+
+For this problem we will be looking at the power ball lottery. In this lottery game, the goal is to guess as many balls correctly as you can. If you can guess all 5 white balls and the power ball correctly, you can win up to 20 million dollars. It costs 1 dollar to play the normal ball lottery and 2 dollars for the power ball lottery, which will give you higher prize.
+
+To find the probability of winning the jackpot, we can first calculate this mathematically. Since there are 59 white balls, the probability of guessing the first white ball right is 1/59. Then out of the remaining 58 balls, the probability of guessing the second white ball right is 1/58. Following this pattern, the probability of guessing 5 white balls correctly would be $(1/59) * (1/58) * (1/57) * (1/56) * (1/55)$, or about a $1.665e-7$ percent chance. Then, we also have to guess the red ball correctly, which is a 1/42 chance, meaning the final probability of winning the jackpot would be a $1.665e-9 * (1/42)$ or a $3.963e-9$ percent chance.
+
+Another way to find this probability, would be to run a simulation. We chose to run a simulation of 1000 people playing the power ball lottery 2000 times with 1000 times of normal play and 1000 times of power play. If you play the normal power ball lottery 1000 times, it will cost you 1000 dollars and 2000 dollars to play power play 1000 times.
+
 ```{r lottery, warning=FALSE}
 # creating the winning numbers for the white and red loto
 Jackpot_white <- sample.int(59,5)
@@ -285,10 +292,10 @@ ggplot(dataFrameResult, aes(x = play_type, y = money_lost)) +
   ylim(-2000,0)
 ```
 
-After running our simulation and graphing our results, you can see that majority of people that played the lottery lost money. After spending the 1000 or 2000 dollars to play 1000 times, all but a few people did not break even. In playing the normal power ball lottery 1000 times, most people lost more than 750 dollars and in playing the power play lottery, most people lost more that 1500 dollars. If you run the simulation over and over again, you might see someone win thousands of dollars, but it is very rare. We conclude that the probability of winning the lottery is very small, you are much more likely to lose money than make money when playing power ball. Our recommendation is that you do not play the lottery, maybe invest the money instead.
+In our simulation for each ticket, to simulate the process of choosing the lottery jackpot, we will first generate 5 random numbers from 1:59 for the white balls and 1 random number from 1:42 for the red ball. We will simulate the process of buying the ticket by setting the starting money to be -1 or -2 based on the type of play. Then we simulate choosing balls by again generating 5 random numbers from 1:59, and 1 random number from 1:42. Finally we will compare the numbers we got in this single simulation with the jackpot numbers to see if we gain or lose any money. By running this simulation multiple times, we are able to simulate 1000 people buying 2000 tickets (1000 normal play and 1000 power play) each. And we will visualize the result of their lost or gain after buying those tickets.
 
-* Introducing your topic and giving a brief overview (2.5 points)
-* Commenting your code and following the style guidelines (1.5 points) 
-* Plotting your results, with a well-labeled plot that follows our visualization style guidelines (1 point) 
-* Describing the results (1.5 points)
-* Explaining to the student the connection between your statistical problem and your simulation, and using your simulation to guide learning. (2.5 points)
+After running our simulation and graphing our results, you can see that majority of people that played the lottery lost money. After spending the 1000 or 2000 dollars to play 1000 times, all but a few people did not break even. In playing the normal power ball lottery 1000 times, most people lost more than 750 dollars and in playing the power play lottery, most people lost more that 1500 dollars. If you run the simulation over and over again, you might see someone win thousands of dollars, but it is very rare. 
+
+When we look back at the probability we solved mathematically, this supports the results we found in the simulation. After running the simulation 1000 times, we can see that it is possible to win money, but it is very unlikely. Because we see a very little amount of people making money, the probability we solved mathematically makes sense. In our simulation of $2,000,000$ ($1000 * 2000$) total tickets, no one won the jackpot.
+
+We conclude that the probability of winning the lottery is very small, you are much more likely to lose money than make money when playing power ball lottery. Our recommendation is that you do not play the power ball lottery, maybe invest the money instead.
